@@ -1,7 +1,11 @@
 import boto3
 import pandas as pd
+from botocore.config import Config
 
-org_client = boto3.client("organizations")
+
+config = Config(retries={"max_attempts": 10, "mode": "standard"})
+
+org_client = boto3.client("organizations", config=config)
 
 
 def get_root_info():
@@ -36,7 +40,6 @@ def yield_child_accounts(parent_id: str):
         for child in children:
             child["ParentId"] = parent_id
             child["Name"] = get_account_name(child["Id"])
-            print(child)
             yield child
 
 
@@ -61,7 +64,6 @@ def yield_child_ous(parent_id: str):
         for child in children:
             child["ParentId"] = parent_id
             child["Name"] = get_ou_name(child["Id"])
-            print(child)
             yield child
             yield from list_all_children(child["Id"])
 
@@ -102,4 +104,3 @@ def main() -> pd.DataFrame:
 if __name__ == "__main__":
     df = main()
     print(df)
-
